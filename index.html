@@ -233,6 +233,18 @@
     tbody tr.anchor td:first-child { color: var(--green-dark); font-weight: 700; }
     tbody tr.anchor td:last-child { color: var(--green-dark); }
 
+    .joke {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--green);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: normal;
+      text-transform: none;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
     .offset-hint {
       font-size: 0.75rem;
       color: var(--muted);
@@ -331,7 +343,7 @@
   <div class="icon">🦄</div>
   <h1>Plot Kalkulátor</h1>
   <p>Rozteč sloupků na pásmu</p>
-  <p class="version">v1.0.5</p>
+  <p class="version">v1.0.6</p>
 </header>
 
 <main>
@@ -401,6 +413,82 @@
 
   let appMode = 'plot';        // 'plot' | 'podhrabovky'
   let shortenSide = 'last';    // 'last' | 'first'
+
+  const JOKES = {
+    start: [
+      'Zlatíčko, tak jdeme na to! 💪',
+      'Beruško, pásmo v ruce a hurá do toho!',
+      'Princezno, dnes z tebe bude stavařka. 🏗️',
+    ],
+    end: [
+      'Hotovoóó! Aperol Spritz si plně zasloužíš. 🍹',
+      'Zlato, máš to! Teď nohy nahoru a Hugo do ruky.',
+      'Konec! Sekt s broskví je tvůj. 🥂',
+    ],
+    half: [
+      'Sluníčko, jsi přesně v půlce — krátká pauza a frapé. ☕',
+      'Polovina, brouku! Druhá půlka jde z kopce.',
+    ],
+    one: [
+      'Poslední sloupek, kočičko! Drž se.',
+      'Už jen jeden, lvičko. Pak je sekt tvůj.',
+    ],
+    two: [
+      'Ještě dva, miláčku, a otevíráme prosecco. 🍾',
+    ],
+    three: [
+      'Ještě si dáš 3× mojito a máš hotovo, beruško. 🍸',
+      'Tři sloupky a Aperol! Nedej se.',
+    ],
+    five_left: [
+      'Pět posledních, princezno — jako pětka tequily. 🥃',
+      'Už jen 5 sloupků, kuřátko. Pak gin & tonic.',
+    ],
+    ten_left: [
+      'Zlatíčko, už jen 10 sloupků.',
+      'Deset a šlus, brouku. Dýchej zhluboka.',
+    ],
+    five_done: [
+      'Beruško, zaber, už máš pět sloupků hotových.',
+      'Pětka! Zlatíčko, jdeš jak stroj. 🚜',
+    ],
+    ten_done: [
+      'Deset hotových, sluníčko! Big mojito energy. 🌴',
+      'Princezno, deset za tebou — koukni, jak ti to sluší.',
+    ],
+    every_five: [
+      'Pásmo natáhnout, ramena dozadu, prosecco se chladí.',
+      'Brouku, držíš krok jak hodinky. ⏱️',
+      'Beruško, jdeš lépe než předpověď počasí.',
+      'Zlatíčko, vypadáš krásně i s vodováhou.',
+      'Princezno, ještě kousek a chillujeme s Hugo. 🌿',
+      'Kočičko, sekt v lednici už si tě hledá.',
+      'Sluníčko, tempo jak na pilates. 🧘‍♀️',
+      'Miláčku, zaber, šampáňo nepočká věčně.',
+      'Lvičko, dělej, lipánek na tebe čeká. 🍮',
+    ],
+  };
+
+  function pick(arr, seed) {
+    return arr[((seed % arr.length) + arr.length) % arr.length];
+  }
+
+  function getJoke(i, n) {
+    const remaining = n - 1 - i;
+    if (i === 0) return pick(JOKES.start, n);
+    if (i === n - 1) return pick(JOKES.end, n);
+    const half = Math.floor((n - 1) / 2);
+    if (i === half && n >= 6) return pick(JOKES.half, n);
+    if (remaining === 1) return pick(JOKES.one, n);
+    if (remaining === 2) return pick(JOKES.two, n);
+    if (remaining === 3) return pick(JOKES.three, n);
+    if (remaining === 5) return pick(JOKES.five_left, n);
+    if (remaining === 10) return pick(JOKES.ten_left, n);
+    if (i === 5) return pick(JOKES.five_done, n);
+    if (i === 10) return pick(JOKES.ten_done, n);
+    if (i % 5 === 0) return pick(JOKES.every_five, n + i);
+    return null;
+  }
 
   function setMode(m) {
     appMode = m;
@@ -633,7 +721,11 @@
     for (let i = 0; i < n; i++) {
       const v = displayValueAt(i);
       const cls = r.anchors.has(i) ? ' class="anchor"' : '';
-      html += `<tr${cls} onclick="setAnchor(${i})"><td>${bodLabel(i, n)}</td><td>${v.toFixed(2)} m</td></tr>`;
+      const joke = getJoke(i, n);
+      const labelHtml = joke
+        ? `${bodLabel(i, n)}<span class="joke">${joke}</span>`
+        : bodLabel(i, n);
+      html += `<tr${cls} onclick="setAnchor(${i})"><td>${labelHtml}</td><td>${v.toFixed(2)} m</td></tr>`;
     }
     tbody.innerHTML = html;
     const hint = document.getElementById('anchorHint');
