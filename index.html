@@ -222,6 +222,19 @@
     tbody td:first-child { color: var(--muted); font-size: 0.85rem; }
     tbody td:last-child { font-weight: 700; font-size: 1.15rem; color: var(--green-dark); }
 
+    tbody tr { cursor: pointer; transition: background .12s; }
+    tbody tr:active { background: #e9ecef; }
+    tbody tr.anchor { background: var(--green-pale) !important; }
+    tbody tr.anchor td:first-child { color: var(--green-dark); font-weight: 700; }
+    tbody tr.anchor td:last-child { color: var(--green-dark); }
+
+    .offset-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
     .btn-row {
       display: flex;
       gap: 10px;
@@ -292,6 +305,15 @@
         </div>
       </div>
     </div>
+
+    <div style="margin-top:18px">
+      <label>Offset pásma (m)</label>
+      <div class="input-row">
+        <input type="number" id="offset" inputmode="decimal" placeholder="0" value="0" step="0.01">
+        <span class="unit">m</span>
+      </div>
+      <div class="offset-hint">Hodnota na pásmu u prvního sloupku (např. když pásmo začíná u zdi, ale sloupek je o kus dál).</div>
+    </div>
   </div>
 
   <button class="calc" onclick="spocitej()">Spočítat</button>
@@ -313,6 +335,8 @@
     const minR   = parseFloat(document.getElementById('minR').value);
     const ideal  = parseFloat(document.getElementById('idealR').value);
     const maxR   = parseFloat(document.getElementById('maxR').value);
+    const offsetEl = document.getElementById('offset');
+    const offset = parseFloat(offsetEl && offsetEl.value) || 0;
     const el     = document.getElementById('vysledek');
 
     if (!delka || delka <= 0) {
@@ -365,12 +389,6 @@
     const gaps    = best.gaps;
     const posts   = gaps + 1;
 
-    // Kumulativní body
-    const body_na_pasmu = [];
-    for (let i = 0; i <= gaps; i++) {
-      body_na_pasmu.push(Math.round(i * spacing * 1000) / 1000);
-    }
-
     // Varovani kdyz jsou dalsi validni varianty
     let warnHtml = '';
     if (candidates.length > 1) {
@@ -379,12 +397,6 @@
       ).join(', &nbsp;');
       warnHtml = `<div class="warn-box">Alternativy: ${alts}</div>`;
     }
-
-    const rows = body_na_pasmu.map((b, i) => `
-      <tr>
-        <td>${i === 0 ? 'Start' : i === gaps ? 'Konec' : `Sloupek ${i}`}</td>
-        <td>${b.toFixed(2)} m</td>
-      </tr>`).join('');
 
     el.innerHTML = `
       <div class="card">
@@ -403,10 +415,11 @@
           </div>
         </div>
         ${warnHtml}
+        <div class="offset-hint" id="anchorHint">Klikni na sloupek v tabulce — pásmo se od něj začne počítat od nuly.</div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Bod</th><th>Vzdálenost na pásmu</th></tr></thead>
-            <tbody>${rows}</tbody>
+            <tbody id="bodyRows"></tbody>
           </table>
         </div>
         <div class="btn-row">
@@ -415,8 +428,57 @@
         </div>
       </div>`;
 
-    window._lastResult = { delka, spacing, posts, gaps, body_na_pasmu };
+    window._lastResult = { delka, spacing, posts, gaps, offset, anchorIdx: null };
+    renderRows();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function bodLabel(i, gaps) {
+    if (i === 0) return 'Start';
+    if (i === gaps) return 'Konec';
+    return `Sloupek ${i}`;
+  }
+
+  function displayValueAt(i) {
+    const r = window._lastResult;
+    const base = r.anchorIdx == null ? 0 : r.anchorIdx;
+    const off = r.anchorIdx == null ? r.offset : 0;
+    return (i - base) * r.spacing + off;
+  }
+
+  function renderRows() {
+    const r = window._lastResult;
+    if (!r) return;
+    const tbody = document.getElementById('bodyRows');
+    if (!tbody) return;
+    let html = '';
+    for (let i = 0; i <= r.gaps; i++) {
+      const v = displayValueAt(i);
+      const cls = r.anchorIdx === i ? ' class="anchor"' : '';
+      html += `<tr${cls} onclick="setAnchor(${i})"><td>${bodLabel(i, r.gaps)}</td><td>${v.toFixed(2)} m</td></tr>`;
+    }
+    tbody.innerHTML = html;
+    const hint = document.getElementById('anchorHint');
+    if (hint) {
+      hint.textContent = r.anchorIdx == null
+        ? 'Klikni na sloupek v tabulce — pásmo se od něj začne počítat od nuly.'
+        : `Pásmo nulováno na: ${bodLabel(r.anchorIdx, r.gaps)}. Klikni znovu pro zrušení.`;
+    }
+  }
+
+  function setAnchor(i) {
+    if (!window._lastResult) return;
+    window._lastResult.anchorIdx = (window._lastResult.anchorIdx === i) ? null : i;
+    renderRows();
+  }
+
+  function buildListText() {
+    const r = window._lastResult;
+    const lines = [];
+    for (let i = 0; i <= r.gaps; i++) {
+      lines.push(`${bodLabel(i, r.gaps)}: ${displayValueAt(i).toFixed(2)} m`);
+    }
+    return lines;
   }
 
   function kopiruj() {
@@ -425,9 +487,7 @@
     const text = [
       `Plot ${r.delka} m | rozteč ${r.spacing.toFixed(2)} m | ${r.posts} sloupků`,
       '',
-      ...r.body_na_pasmu.map((b, i) =>
-        `${i === 0 ? 'Start' : i === r.gaps ? 'Konec' : `Sloupek ${i}`}: ${b.toFixed(2)} m`
-      )
+      ...buildListText()
     ].join('\n');
     navigator.clipboard.writeText(text)
       .then(() => alert('Zkopírováno!'))
@@ -438,9 +498,7 @@
     if (!window._lastResult) return;
     const r = window._lastResult;
     const text = `Plot ${r.delka} m\nRozteč: ${r.spacing.toFixed(2)} m\nSloupků: ${r.posts} ks\n\n` +
-      r.body_na_pasmu.map((b, i) =>
-        `${i === 0 ? 'Start' : i === r.gaps ? 'Konec' : `${i}.`}: ${b.toFixed(2)} m`
-      ).join('\n');
+      buildListText().join('\n');
     if (navigator.share) {
       navigator.share({ title: 'Plot Kalkulátor', text }).catch(() => {});
     } else {

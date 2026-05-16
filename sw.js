@@ -1,4 +1,4 @@
-const CACHE = 'plot-v1';
+const CACHE = 'plot-v2';
 const FILES = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
