@@ -343,7 +343,7 @@
   <div class="icon">🦄</div>
   <h1>Plot Kalkulátor</h1>
   <p>Rozteč sloupků na pásmu</p>
-  <p class="version">v1.0.13</p>
+  <p class="version">v1.0.14</p>
 </header>
 
 <main>
@@ -595,9 +595,8 @@
     return fillTemplate(randPick(pool), i, n);
   }
 
-  function generateJokes(n, mode) {
+  function generateJokes(n) {
     const arr = new Array(n).fill(null);
-    if (mode !== 'plot') return arr;
     for (let i = 0; i < n; i++) arr[i] = makeJoke(i, n);
     return arr;
   }
@@ -775,9 +774,7 @@
        </div>`
     ).join('');
 
-    const hintText = data.mode === 'podhrabovky'
-      ? 'Klikni na bod — od něj se pásmo začne počítat znovu od nuly. Předchozí body se nezmění.'
-      : 'Klikni na sloupek — od něj se pásmo začne počítat znovu od nuly (jako bys posunul krátké pásmo). Předchozí sloupky se nezmění.';
+    const hintText = 'Klikni na sloupek — od něj se pásmo začne počítat znovu od nuly (jako bys posunul krátké pásmo). Předchozí sloupky se nezmění.';
 
     el.innerHTML = `
       <div class="card">
@@ -802,7 +799,7 @@
       points: data.points,
       anchors: new Set(),
       hintText,
-      jokes: generateJokes(data.points.length, data.mode),
+      jokes: generateJokes(data.points.length),
     };
     renderRows();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -811,8 +808,7 @@
   function bodLabel(i, n) {
     if (i === 0) return 'Start';
     if (i === n - 1) return 'Konec';
-    const r = window._lastResult;
-    return (r && r.mode === 'podhrabovky') ? `Bod ${i}` : `Sloupek ${i}`;
+    return `Sloupek ${i}`;
   }
 
   function displayValueAt(i) {
@@ -845,7 +841,7 @@
     if (hint) {
       hint.textContent = r.anchors.size === 0
         ? r.hintText
-        : `Pásmo posunuto ${r.anchors.size}× — klikni znovu na zvýrazněný bod pro zrušení.`;
+        : `Pásmo posunuto ${r.anchors.size}× — klikni znovu na zvýrazněný sloupek pro zrušení.`;
     }
   }
 
