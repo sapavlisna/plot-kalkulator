@@ -343,7 +343,7 @@
   <div class="icon">🦄</div>
   <h1>Plot Kalkulátor</h1>
   <p>Rozteč sloupků na pásmu</p>
-  <p class="version">v1.0.6</p>
+  <p class="version">v1.0.7</p>
 </header>
 
 <main>
@@ -414,80 +414,192 @@
   let appMode = 'plot';        // 'plot' | 'podhrabovky'
   let shortenSide = 'last';    // 'last' | 'first'
 
+  const NICKS = [
+    'Beruško', 'Zlatíčko', 'Princezno', 'Sluníčko', 'Brouku', 'Kočičko',
+    'Lvičko', 'Kuřátko', 'Miláčku', 'Štístko', 'Broučku', 'Hvězdičko',
+    'Andílku', 'Květinko', 'Drahoušku', 'Veverko', 'Holčičko', 'Šmoulinko',
+    'Šnečku', 'Berunko', 'Princátko', 'Vrabčáku',
+  ];
+
   const JOKES = {
     start: [
-      'Zlatíčko, tak jdeme na to! 💪',
-      'Beruško, pásmo v ruce a hurá do toho!',
-      'Princezno, dnes z tebe bude stavařka. 🏗️',
+      '{nick}, tak jdeme na to! 💪',
+      '{nick}, pásmo v ruce a hurá do toho!',
+      '{nick}, dnes z tebe bude stavařka. 🏗️',
+      '{nick}, nasaď vodováhu a hezky se usměj. 😊',
+      '{nick}, plot sám nepostaví, ale ty ano.',
+      '{nick}, narovnej se, dýchni a začínáme!',
+      '{nick}, postavíš plot a pak si dáš Aperol. Slibuju. 🍹',
+      '{nick}, dělnice roku startuje právě teď. 🛠️',
+      '{nick}, hřej kafem, hřej se sluncem, a pojď. ☕',
+      '{nick}, žádné dramatě — jen pár sloupků a šampáňo.',
     ],
     end: [
-      'Hotovoóó! Aperol Spritz si plně zasloužíš. 🍹',
-      'Zlato, máš to! Teď nohy nahoru a Hugo do ruky.',
-      'Konec! Sekt s broskví je tvůj. 🥂',
+      'Hotovoóó, {nick}! Aperol Spritz si plně zasloužíš. 🍹',
+      'Zlato, máš to! Nohy nahoru a Hugo do ruky. 🌿',
+      'Konec! Sekt s broskví je tvůj, {nick}. 🥂',
+      '{nick}, plot stojí! Ty taky stojíš za to. 💖',
+      '{nick}, hotovo! Teď už jen Espresso Martini a Netflix.',
+      '{nick}, dokonáno jest. Bellini je v cestě. 🍑',
+      '{nick}, hotová věc — pochval se sama, zasloužíš si to.',
+      'A je to, {nick}! Růžové víno otevřít a slavit. 🍷',
+      '{nick}, konec! Pásmo do skříně, ty na gauč.',
+      'Finito, {nick}! Margarita ti volá. 🍹',
     ],
     half: [
-      'Sluníčko, jsi přesně v půlce — krátká pauza a frapé. ☕',
-      'Polovina, brouku! Druhá půlka jde z kopce.',
+      '{nick}, jsi přesně v půlce — krátká pauza a frapé. ☕',
+      'Polovina, {nick}! Druhá půlka jde z kopce.',
+      '{nick}, půlka za tebou. Co takhle mini-Hugo?',
+      '{nick}, druhá půlka tě bude milovat, slibuju.',
+      '50 %, {nick}! Šampáňo se chladí. 🍾',
+      '{nick}, půlka! Tady už se nevrací, jen jde se dál.',
     ],
     one: [
-      'Poslední sloupek, kočičko! Drž se.',
-      'Už jen jeden, lvičko. Pak je sekt tvůj.',
+      'Poslední sloupek, {nick}! Drž se.',
+      'Už jen jeden, {nick}. Pak je sekt tvůj.',
+      '{nick}, finální sloupek. Tohle je tvůj moment.',
+      '{nick}, ještě jeden a Cosmopolitan si naliješ. 🍸',
+      '{nick}, poslední! Sangria už ti mává. 🌶️',
+      '{nick}, jeden sloupek od štěstí. Dýchej.',
     ],
     two: [
-      'Ještě dva, miláčku, a otevíráme prosecco. 🍾',
+      'Ještě dva, {nick}, a otevíráme prosecco. 🍾',
+      '{nick}, dva sloupky tě dělí od Mimosy. 🥂',
+      'Dva poslední, {nick}. Klid a důstojnost.',
+      '{nick}, dva sloupky a růžové víno tě objímá.',
+      '{nick}, dvojice. Jako olivy v martini.',
     ],
     three: [
-      'Ještě si dáš 3× mojito a máš hotovo, beruško. 🍸',
-      'Tři sloupky a Aperol! Nedej se.',
+      'Ještě si dáš 3× mojito a máš hotovo, {nick}. 🍸',
+      'Tři sloupky a Aperol! Nedej se, {nick}.',
+      '{nick}, tři poslední — jako tři olivy v martini.',
+      '{nick}, ještě tři. Šampaňské se na tebe těší.',
+      'Tři a šlus, {nick}. Lillet se chladí.',
     ],
     five_left: [
-      'Pět posledních, princezno — jako pětka tequily. 🥃',
-      'Už jen 5 sloupků, kuřátko. Pak gin & tonic.',
+      'Pět posledních, {nick} — jako pětka tequily. 🥃',
+      'Už jen 5 sloupků, {nick}. Pak gin & tonic.',
+      '{nick}, pět sloupků a Piña Colada na pláži (alespoň v duchu). 🌴',
+      '{nick}, pětka. Konec se blíží rychleji než víkend.',
+      'Pět, {nick}. Pomalu sundávej rukavice.',
+      '{nick}, pět zbývá. Dýchni a do toho.',
     ],
     ten_left: [
-      'Zlatíčko, už jen 10 sloupků.',
-      'Deset a šlus, brouku. Dýchej zhluboka.',
+      '{nick}, už jen 10 sloupků.',
+      'Deset a šlus, {nick}. Dýchej zhluboka.',
+      '{nick}, desítka. Crodino si rezervuj. 🍊',
+      '{nick}, 10 zbývá — to dáš se zavázanýma očima.',
+      'Deset posledních, {nick}. Margarita ti drží místo.',
     ],
     five_done: [
-      'Beruško, zaber, už máš pět sloupků hotových.',
-      'Pětka! Zlatíčko, jdeš jak stroj. 🚜',
+      '{nick}, zaber, už máš pět sloupků hotových.',
+      'Pětka! {nick}, jdeš jak stroj. 🚜',
+      '{nick}, 5 hotových. Mini-pauza a jedem dál.',
+      '{nick}, 5 za tebou — to je dobrý průměr.',
+      'Pět hotových, {nick}. Sex on the Beach se na tebe usmívá. ☀️',
     ],
     ten_done: [
-      'Deset hotových, sluníčko! Big mojito energy. 🌴',
-      'Princezno, deset za tebou — koukni, jak ti to sluší.',
+      'Deset hotových, {nick}! Big mojito energy. 🌴',
+      '{nick}, deset za tebou — koukni, jak ti to sluší.',
+      '{nick}, 10 hotových. Tempo bohyně.',
+      '{nick}, dvouciferné číslo! Šampáňo se ošívá.',
+      'Deset, {nick}! Aperol Spritz tě sleduje. 🍹',
+    ],
+    fifteen_done: [
+      'Patnáct, {nick}! To už je výkon.',
+      '{nick}, 15 sloupků. Bellini se klepe. 🍑',
+      '{nick}, patnáctka — Espresso Martini si zaslouží.',
+      '{nick}, 15 hotových. Jsi v laufu. 💃',
+    ],
+    twenty_done: [
+      'Dvacet, {nick}! Tohle je už mistrovství.',
+      '{nick}, 20 sloupků. Cosmopolitan si zasloužíš ihned. 🍸',
+      '{nick}, dvacka! Otevíráme druhý sekt. 🍾',
+      '{nick}, 20 za tebou. Bohyně plotů. 👑',
+    ],
+    twentyfive_done: [
+      'Pětadvacet, {nick}! Stříbrná svatba s plotem.',
+      '{nick}, 25 hotových. Margarita se solí, prosím. 🍹',
+      '{nick}, 25 — to je výkonná žena!',
+    ],
+    thirty_done: [
+      'Třicet, {nick}! Plot města se klaní.',
+      '{nick}, 30 hotových. Plný gin & tonic ti přijde domů.',
+      '{nick}, 30! Tohle už jen tak někdo nezvládne.',
     ],
     every_five: [
-      'Pásmo natáhnout, ramena dozadu, prosecco se chladí.',
-      'Brouku, držíš krok jak hodinky. ⏱️',
-      'Beruško, jdeš lépe než předpověď počasí.',
-      'Zlatíčko, vypadáš krásně i s vodováhou.',
-      'Princezno, ještě kousek a chillujeme s Hugo. 🌿',
-      'Kočičko, sekt v lednici už si tě hledá.',
-      'Sluníčko, tempo jak na pilates. 🧘‍♀️',
-      'Miláčku, zaber, šampáňo nepočká věčně.',
-      'Lvičko, dělej, lipánek na tebe čeká. 🍮',
+      'Pásmo natáhnout, ramena dozadu, prosecco se chladí. 🍾',
+      '{nick}, držíš krok jak hodinky. ⏱️',
+      '{nick}, jdeš lépe než předpověď počasí.',
+      '{nick}, vypadáš krásně i s vodováhou.',
+      '{nick}, ještě kousek a chillujeme s Hugo. 🌿',
+      '{nick}, sekt v lednici už si tě hledá.',
+      '{nick}, tempo jak na pilates. 🧘‍♀️',
+      '{nick}, zaber, šampáňo nepočká věčně.',
+      '{nick}, dělej, lipánek na tebe čeká. 🍮',
+      '{nick}, růžové víno do tebe věří.',
+      '{nick}, jdeš jak stavební instagramerka. 📸',
+      '{nick}, frappé na konci tunelu už svítí. ✨',
+      '{nick}, {i}. sloupek je v rukávu.',
+      '{nick}, máš {done} hotových, zbývá {rem}. Šampáňo se třese. 🥂',
+      '{nick}, klobouk dolů — ne, klobouk si nech, slunce pálí.',
+      '{nick}, kdo postaví plot, ten je hrdina dne.',
+      '{nick}, {rem} ještě zbývá. To není moc, ne?',
+    ],
+    sprinkle: [
+      '{nick}, ty makáš, ty máš mojito. 🍸',
+      '{nick}, nezapomeň pít vodu. (Sekt po čtvrté.)',
+      '{nick}, ramena dolů, plot nahoru.',
+      '{nick}, vypadáš jak fitness-stavbařka. 💅',
+      '{nick}, {i}. sloupek a usmíváš se na slunce.',
+      '{nick}, zbývá {rem}. Aperol počká, ale ne dlouho.',
+      '{nick}, jdeš jako růžová bouře. 🌸',
+      '{nick}, sloupek hotový — bod pro tebe.',
     ],
   };
 
-  function pick(arr, seed) {
-    return arr[((seed % arr.length) + arr.length) % arr.length];
+  function randPick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  function getJoke(i, n) {
+  function fillTemplate(s, i, n) {
     const remaining = n - 1 - i;
-    if (i === 0) return pick(JOKES.start, n);
-    if (i === n - 1) return pick(JOKES.end, n);
+    return s
+      .replace(/\{nick\}/g, randPick(NICKS))
+      .replace(/\{i\}/g, i)
+      .replace(/\{done\}/g, i)
+      .replace(/\{rem\}/g, remaining);
+  }
+
+  function makeJoke(i, n) {
+    const remaining = n - 1 - i;
     const half = Math.floor((n - 1) / 2);
-    if (i === half && n >= 6) return pick(JOKES.half, n);
-    if (remaining === 1) return pick(JOKES.one, n);
-    if (remaining === 2) return pick(JOKES.two, n);
-    if (remaining === 3) return pick(JOKES.three, n);
-    if (remaining === 5) return pick(JOKES.five_left, n);
-    if (remaining === 10) return pick(JOKES.ten_left, n);
-    if (i === 5) return pick(JOKES.five_done, n);
-    if (i === 10) return pick(JOKES.ten_done, n);
-    if (i % 5 === 0) return pick(JOKES.every_five, n + i);
-    return null;
+    let pool = null;
+    if (i === 0) pool = JOKES.start;
+    else if (i === n - 1) pool = JOKES.end;
+    else if (i === half && n >= 6) pool = JOKES.half;
+    else if (remaining === 1) pool = JOKES.one;
+    else if (remaining === 2) pool = JOKES.two;
+    else if (remaining === 3) pool = JOKES.three;
+    else if (remaining === 5) pool = JOKES.five_left;
+    else if (remaining === 10) pool = JOKES.ten_left;
+    else if (i === 5) pool = JOKES.five_done;
+    else if (i === 10) pool = JOKES.ten_done;
+    else if (i === 15) pool = JOKES.fifteen_done;
+    else if (i === 20) pool = JOKES.twenty_done;
+    else if (i === 25) pool = JOKES.twentyfive_done;
+    else if (i === 30) pool = JOKES.thirty_done;
+    else if (i % 5 === 0) pool = JOKES.every_five;
+    else if (Math.random() < 0.18) pool = JOKES.sprinkle;
+    if (!pool) return null;
+    return fillTemplate(randPick(pool), i, n);
+  }
+
+  function generateJokes(n, mode) {
+    const arr = new Array(n).fill(null);
+    if (mode !== 'plot') return arr;
+    for (let i = 0; i < n; i++) arr[i] = makeJoke(i, n);
+    return arr;
   }
 
   function setMode(m) {
@@ -690,6 +802,7 @@
       points: data.points,
       anchors: new Set(),
       hintText,
+      jokes: generateJokes(data.points.length, data.mode),
     };
     renderRows();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -721,7 +834,7 @@
     for (let i = 0; i < n; i++) {
       const v = displayValueAt(i);
       const cls = r.anchors.has(i) ? ' class="anchor"' : '';
-      const joke = getJoke(i, n);
+      const joke = r.jokes && r.jokes[i];
       const labelHtml = joke
         ? `${bodLabel(i, n)}<span class="joke">${joke}</span>`
         : bodLabel(i, n);
