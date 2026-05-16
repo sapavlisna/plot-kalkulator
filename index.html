@@ -306,14 +306,6 @@
       </div>
     </div>
 
-    <div style="margin-top:18px">
-      <label>Offset pásma (m)</label>
-      <div class="input-row">
-        <input type="number" id="offset" inputmode="decimal" placeholder="0" value="0" step="0.01">
-        <span class="unit">m</span>
-      </div>
-      <div class="offset-hint">Hodnota na pásmu u prvního sloupku (např. když pásmo začíná u zdi, ale sloupek je o kus dál).</div>
-    </div>
   </div>
 
   <button class="calc" onclick="spocitej()">Spočítat</button>
@@ -335,8 +327,6 @@
     const minR   = parseFloat(document.getElementById('minR').value);
     const ideal  = parseFloat(document.getElementById('idealR').value);
     const maxR   = parseFloat(document.getElementById('maxR').value);
-    const offsetEl = document.getElementById('offset');
-    const offset = parseFloat(offsetEl && offsetEl.value) || 0;
     const el     = document.getElementById('vysledek');
 
     if (!delka || delka <= 0) {
@@ -415,7 +405,7 @@
           </div>
         </div>
         ${warnHtml}
-        <div class="offset-hint" id="anchorHint">Klikni na sloupek v tabulce — pásmo se od něj začne počítat od nuly.</div>
+        <div class="offset-hint" id="anchorHint">Klikni na sloupek — od něj se pásmo začne počítat znovu od nuly (jako bys posunul krátké pásmo). Předchozí sloupky se nezmění.</div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Bod</th><th>Vzdálenost na pásmu</th></tr></thead>
@@ -428,7 +418,7 @@
         </div>
       </div>`;
 
-    window._lastResult = { delka, spacing, posts, gaps, offset, anchorIdx: null };
+    window._lastResult = { delka, spacing, posts, gaps, anchors: new Set() };
     renderRows();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -441,9 +431,11 @@
 
   function displayValueAt(i) {
     const r = window._lastResult;
-    const base = r.anchorIdx == null ? 0 : r.anchorIdx;
-    const off = r.anchorIdx == null ? r.offset : 0;
-    return (i - base) * r.spacing + off;
+    let base = 0;
+    for (const a of r.anchors) {
+      if (a <= i && a > base) base = a;
+    }
+    return (i - base) * r.spacing;
   }
 
   function renderRows() {
@@ -454,21 +446,24 @@
     let html = '';
     for (let i = 0; i <= r.gaps; i++) {
       const v = displayValueAt(i);
-      const cls = r.anchorIdx === i ? ' class="anchor"' : '';
+      const cls = r.anchors.has(i) ? ' class="anchor"' : '';
       html += `<tr${cls} onclick="setAnchor(${i})"><td>${bodLabel(i, r.gaps)}</td><td>${v.toFixed(2)} m</td></tr>`;
     }
     tbody.innerHTML = html;
     const hint = document.getElementById('anchorHint');
     if (hint) {
-      hint.textContent = r.anchorIdx == null
-        ? 'Klikni na sloupek v tabulce — pásmo se od něj začne počítat od nuly.'
-        : `Pásmo nulováno na: ${bodLabel(r.anchorIdx, r.gaps)}. Klikni znovu pro zrušení.`;
+      hint.textContent = r.anchors.size === 0
+        ? 'Klikni na sloupek — od něj se pásmo začne počítat znovu od nuly (jako bys posunul krátké pásmo). Předchozí sloupky se nezmění.'
+        : `Pásmo posunuto na ${r.anchors.size}× — klikni znovu na zvýrazněný sloupek pro zrušení.`;
     }
   }
 
   function setAnchor(i) {
-    if (!window._lastResult) return;
-    window._lastResult.anchorIdx = (window._lastResult.anchorIdx === i) ? null : i;
+    const r = window._lastResult;
+    if (!r) return;
+    if (i === 0) return;
+    if (r.anchors.has(i)) r.anchors.delete(i);
+    else r.anchors.add(i);
     renderRows();
   }
 
