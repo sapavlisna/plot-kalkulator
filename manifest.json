@@ -4,8 +4,8 @@
   "description": "Výpočet rozteče sloupků plotu",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#1b4332",
-  "theme_color": "#1b4332",
+  "background_color": "#db2777",
+  "theme_color": "#db2777",
   "icons": [
     {
       "src": "icon-192.png",
