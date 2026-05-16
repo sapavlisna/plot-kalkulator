@@ -245,6 +245,19 @@
       line-height: 1.3;
     }
 
+    .intro-joke {
+      background: linear-gradient(135deg, #fce7f3, #fae8ff);
+      border-left: 4px solid var(--green);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--green-dark);
+      line-height: 1.4;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
     .offset-hint {
       font-size: 0.75rem;
       color: var(--muted);
@@ -343,7 +356,7 @@
   <div class="icon">🦄</div>
   <h1>Plot Kalkulátor</h1>
   <p>Rozteč sloupků na pásmu</p>
-  <p class="version">v1.0.14</p>
+  <p class="version">v1.0.15</p>
 </header>
 
 <main>
@@ -550,6 +563,74 @@
       '{nick}, sloupek hotový — bod pro tebe.',
     ],
   };
+
+  const INTRO_JOKES = {
+    tiny: [
+      'Plot {delka} m? To se dneska moc nepředřeš, {nick}. 😏',
+      '{delka} m — to budeš dělat v žabkách a županu? 🩴',
+      'Plot {delka} m? Stihneš to mezi snídaní a kafem. ☕',
+      '{delka} m je dýchánek, ne stavba.',
+      'Plot {delka} m? Krteček by to dal taky. 🐀',
+      'Plot {delka} m? Pásmo natáhnout, šlofík, hotovo. 😴',
+      '{delka} m? Nezahřeješ se. Možná když si dáš dřep. 💪',
+    ],
+    short: [
+      'Plot {delka} m? Rozcvička. Stihneš to do oběda. 🍽️',
+      '{delka} m — chce to klid, kafe a žádné drama. ☕',
+      'Plot {delka} m? S Patem a Matem bys to dal v jedné epizodě. 🔨',
+      '{delka} m? Pohodička. I s pivem v ruce. 🍺',
+      'Plot {delka} m — žabky můžeš nechat, ale boty radši nazuj. 👟',
+      '{delka} m? Pozdě začínáš, brzy končíš. Klasika. ⏰',
+    ],
+    medium: [
+      'Plot {delka} m? To už chce plán a kafe na ráno. ☕',
+      '{delka} m? Pat a Mat by si to rozdělili na dvě epizody. 🔨',
+      'Plot {delka} m — dvě piva po cestě a dáš to. 🍺🍺',
+      '{delka} m? Bořek stavitel by ti přinesl trakař. 🚧',
+      'Plot {delka} m? Tak akorát, aby tě bolela záda. 🦴',
+      'Plot {delka} m — k tomu pořádný oběd a jedem. 🍲',
+      '{delka} m? Manželka už ti chystá obklad na ramena. 💆',
+    ],
+    long: [
+      'Plot {delka} m? Máš v zadku vrtuli, že to chceš stihnout? 🚁',
+      '{delka} m — kýbl Red Bullu nebo s tím nehnem. 🥫',
+      'Plot {delka} m? S Patem, Matem i Bořkem stavitelem ti to půjde líp. 🔨',
+      '{delka} m? Hodně. Kafe rovnou do kapačky. ☕',
+      'Plot {delka} m — to už není dělník, to je dříč. 💪',
+      '{delka} m? Tady už nepomůže modlitba, jen Plzeň. 🍺',
+      'Plot {delka} m? Sousedi ti budou tleskat. Nebo závidět. 👏',
+    ],
+    epic: [
+      'Plot {delka} m? Na to bude potřeba všech sedm trpaslíků. 🧝',
+      '{delka} m — máš v zadku raketu nebo co? 🚀',
+      'Plot {delka} m? Tohle ti nezvládne ani Bořek s Patem a Matem dohromady. 🆘',
+      '{delka} m? Vezmi si stan. Spaní v práci. ⛺',
+      'Plot {delka} m — to je hraniční zeď, ne plot. 🏰',
+      'Plot {delka} m? Najmi si pomocníka. A jeho kamaráda. 🙏',
+      '{delka} m? Velká čínská zeď ti závidí. 🐉',
+    ],
+    any: [
+      'Plot {delka} m? Klid, mistře. Krok po kroku. 🧘',
+      '{delka} m — pásmo, klid, pivo na konci. 🍺',
+      'Plot {delka} m? Soused už závidí předem. 😏',
+      '{delka} m a tchýně si chystá komentář. 🗣️',
+      'Plot {delka} m? Pojď, ať máš co vyprávět v hospodě. 🍻',
+    ],
+  };
+
+  function pickIntroJoke(delka) {
+    const pool = [];
+    if (delka < 10) pool.push(...INTRO_JOKES.tiny);
+    else if (delka < 30) pool.push(...INTRO_JOKES.short);
+    else if (delka < 70) pool.push(...INTRO_JOKES.medium);
+    else if (delka < 150) pool.push(...INTRO_JOKES.long);
+    else pool.push(...INTRO_JOKES.epic);
+    pool.push(...INTRO_JOKES.any);
+    const raw = randPick(pool);
+    return raw
+      .replace(/\{delka\}/g, String(+delka.toFixed(2)).replace('.', ','))
+      .replace(/\{nick\}/g, randPick(NICKS));
+  }
 
   function randPick(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -775,9 +856,11 @@
     ).join('');
 
     const hintText = 'Klikni na sloupek — od něj se pásmo začne počítat znovu od nuly (jako bys posunul krátké pásmo). Předchozí sloupky se nezmění.';
+    const intro = pickIntroJoke(data.delka);
 
     el.innerHTML = `
       <div class="card">
+        <div class="intro-joke">${intro}</div>
         <div class="stats">${statsHtml}</div>
         ${data.warnHtml || ''}
         <div class="offset-hint" id="anchorHint">${hintText}</div>
